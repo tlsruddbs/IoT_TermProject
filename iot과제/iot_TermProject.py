@@ -1,7 +1,6 @@
 from email.mime import image
-from multiprocessing import Process
+import math
 import threading
-import pymysql
 import RPi.GPIO as GPIO
 import time
 from tkinter import *
@@ -99,13 +98,19 @@ park_spot1.place(x=50, y=360)
 park_spot2 = Label(frame, text="2번 자리: ", font=100)
 park_spot2.place(x=50, y=390)
 
-price_spot1 = Label(frame, text="10000", font=100)
+price_spot1 = Label(frame, text="0", font=100)
 price_spot1.place(x=130, y=360)
-price_spot2 = Label(frame, text="7000", font=100)
+price_spot2 = Label(frame, text="0", font=100)
 price_spot2.place(x=130, y=390)
 
 Label_EXIST1 = False
 Label_EXIST2 = False
+
+start_time1 = 0
+end_time1 = 0
+
+start_time2 = 0
+end_time2 = 0
 
 def motor():
     while True:
@@ -125,12 +130,12 @@ def motor():
 
         if (distance <= 10):
             servo.ChangeDutyCycle(7.5)  # 90도 
-            time.sleep(3)
+        else :
             servo.ChangeDutyCycle(2.5)  # 90도 
 
 
 def dist1():
-    global Label_EXIST1
+    global Label_EXIST1, start_time1, end_time1
     while True:
         GPIO.output(trig1, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
         time.sleep(0.00001)       # 10µs 딜레이 
@@ -145,9 +150,14 @@ def dist1():
         distance = check_time * 34300 / 2
         print("Distance1 : %.1f cm" % distance)
         time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
+        
 
         if(distance <= 10):
+            start_time1 = time.time()
+            price_spot1.config(text = str(math.trunc(start_time1 - end_time1)))
             if Label_EXIST1 == False:
+                start_time1 = time.time()
+                end_time1 = time.time()
                 price_spot1.config(text="0")
                 spot1_carlabel.place(x=spot1[0], y=spot1[1])
                 time.sleep(speed)
@@ -156,10 +166,11 @@ def dist1():
             if Label_EXIST1 == True:
                 spot1_carlabel.place_forget()
                 Label_EXIST1 = False
+                price_spot1.config(text=price_spot1.cget("text"))
                 time.sleep(speed)
 
 def dist2():
-    global Label_EXIST2
+    global Label_EXIST2, start_time2, end_time2
     while True:
         GPIO.output(trig2, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
         time.sleep(0.00001)       # 10µs 딜레이 
@@ -176,7 +187,11 @@ def dist2():
         time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
 
         if(distance <= 10):
+            start_time2 = time.time()
+            price_spot2.config(text = str(math.trunc(start_time2 - end_time2)))
             if Label_EXIST2 == False:
+                start_time2 = time.time()
+                end_time2 = time.time()
                 price_spot2.config(text="0")
                 spot2_carlabel.place(x=spot2[0], y=spot2[1])
                 time.sleep(speed)
@@ -185,6 +200,7 @@ def dist2():
             if Label_EXIST2 == True:
                 spot2_carlabel.place_forget()
                 Label_EXIST2 = False
+                price_spot2.config(text=price_spot2.cget("text"))
                 time.sleep(speed)
 
 
