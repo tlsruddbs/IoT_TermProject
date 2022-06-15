@@ -15,8 +15,8 @@ speed = 0.1
 trig1 = 23
 echo1 = 24
 
-trig2 = 2
-echo2 = 3
+trig2 = 5
+echo2 = 6
 
 trig3 = 17
 echo3 = 27
@@ -66,10 +66,17 @@ image_park_tk = ImageTk.PhotoImage(image_park_resize)
 parklabel = Label(frame, image=image_park_tk)
 parklabel.place(x=10, y=50)
 
-# 프레임에 차 이미지 배치
+# 프레임에 차 이미지 배치하고 처음에는 이미지 숨김.
 image_car_tk = ImageTk.PhotoImage(image_car_resize)
-# carlabel = Label(frame, image=image_car_tk)
-# carlabel.place(x=80, y=220)
+
+spot1_carlabel = Label(frame, image=image_car_tk)
+spot1_carlabel.place(x=spot1[0], y=spot1[1])
+spot1_carlabel.place_forget()
+
+spot2_carlabel = Label(frame, image=image_car_tk)
+spot2_carlabel.place(x=spot2[0], y=spot2[1])
+spot2_carlabel.place_forget()
+
 
 park_status= Label(frame, text="주차 현황: ", font=100)
 park_status.place(x=20, y=10)
@@ -97,11 +104,12 @@ price_spot3.place(x=130, y=420)
 price_spot4 = Label(frame, text="4000", font=100)
 price_spot4.place(x=130, y=450)
 
-
+Label_EXIST1 = False
+Label_EXIST2 = False
 
 def dist1():
+    global Label_EXIST1
     while True:
-        # global start, stop
         GPIO.output(trig1, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
         time.sleep(0.00001)       # 10µs 딜레이 
         GPIO.output(trig1, False)
@@ -117,16 +125,20 @@ def dist1():
         time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
 
         if(distance <= 10):
-            price_spot1.config(text="0")
-            spot1_carlabel = Label(frame, image=image_car_tk)
-            spot1_carlabel.place(x=spot1[0], y=spot1[1])
-            time.sleep(speed)
-        elif(distance > 10):
-            time.sleep(speed)
+            if Label_EXIST1 == False:
+                price_spot1.config(text="0")
+                spot1_carlabel.place(x=spot1[0], y=spot1[1])
+                time.sleep(speed)
+                Label_EXIST1 = True
+        if(distance > 10):
+            if Label_EXIST1 == True:
+                spot1_carlabel.place_forget()
+                Label_EXIST1 = False
+                time.sleep(speed)
 
 def dist2():
+    global Label_EXIST2
     while True:
-        # global start, stop
         GPIO.output(trig2, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
         time.sleep(0.00001)       # 10µs 딜레이 
         GPIO.output(trig2, False)
@@ -142,72 +154,26 @@ def dist2():
         time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
 
         if(distance <= 10):
-            price_spot2.config(text="0")
-            spot2_carlabel = Label(frame, image=image_car_tk)
-            spot2_carlabel.place(x=spot2[0], y=spot2[1])
-            time.sleep(speed)
-        elif(distance > 10):
-            time.sleep(speed)
+            if Label_EXIST2 == False:
+                price_spot2.config(text="0")
+                spot2_carlabel.place(x=spot2[0], y=spot2[1])
+                time.sleep(speed)
+                Label_EXIST2 = True
+        if(distance > 10):
+            if Label_EXIST2 == True:
+                spot2_carlabel.place_forget()
+                Label_EXIST2 = False
+                time.sleep(speed)
 
-def dist3():
-    while True:
-        # global start, stop
-        GPIO.output(trig3, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
-        time.sleep(0.00001)       # 10µs 딜레이 
-        GPIO.output(trig3, False)
 
-        while GPIO.input(echo3)==0:
-            start = time.time()	 # Echo 핀 상승 시간 
-        while GPIO.input(echo3)==1:
-            stop= time.time() # Echo 핀 하강 시간 
-
-        check_time = stop - start
-        distance = check_time * 34300 / 2
-        print("Distance3 : %.1f cm" % distance)
-        time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
-
-        if(distance <= 10):
-            price_spot3.config(text="0")
-            spot3_carlabel = Label(frame, image=image_car_tk)
-            spot3_carlabel.place(x=spot3[0], y=spot3[1])
-            time.sleep(speed)
-        elif(distance > 10):
-            time.sleep(speed)
-
-def dist4():
-    while True:
-        # global start, stop
-        GPIO.output(trig4, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
-        time.sleep(0.00001)       # 10µs 딜레이 
-        GPIO.output(trig4, False)
-
-        while GPIO.input(echo4)==0:
-            start = time.time()	 # Echo 핀 상승 시간 
-        while GPIO.input(echo4)==1:
-            stop= time.time() # Echo 핀 하강 시간 
-
-        check_time = stop - start
-        distance = check_time * 34300 / 2
-        print("Distance4 : %.1f cm" % distance)
-        time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
-
-        if(distance <= 10):
-            price_spot4.config(text="0")
-            spot4_carlabel = Label(frame, image=image_car_tk)
-            spot4_carlabel.place(x=spot4[0], y=spot4[1])
-            time.sleep(speed)
-        elif(distance > 10):
-            time.sleep(speed)
 
 
 t1 = threading.Thread(target=dist1, args=())
-t1.start()
+
 t2 = threading.Thread(target=dist2, args=())
+
+t1.start()
 t2.start()
-t3 = threading.Thread(target=dist3, args=())
-t3.start()
-t4 = threading.Thread(target=dist4, args=())
-t4.start()
 
 # p_a = Process(target=doit)
 # p_a.start()
