@@ -10,6 +10,14 @@ from PIL import Image, ImageTk
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
+SERVO_PIN = 18
+GPIO.setup(SERVO_PIN, GPIO.OUT)
+
+# PWM 인스턴스 servo 생성, 주파수 50으로 설정 
+servo = GPIO.PWM(SERVO_PIN,50)
+# PWM 듀티비 0 으로 시작 
+servo.start(0)
+
 speed = 0.1
 
 trig1 = 23
@@ -90,22 +98,36 @@ park_spot1 = Label(frame, text="1번 자리: ", font=100)
 park_spot1.place(x=50, y=360)
 park_spot2 = Label(frame, text="2번 자리: ", font=100)
 park_spot2.place(x=50, y=390)
-park_spot3 = Label(frame, text="3번 자리: ", font=100)
-park_spot3.place(x=50, y=420)
-park_spot4 = Label(frame, text="4번 자리: ", font=100)
-park_spot4.place(x=50, y=450)
 
 price_spot1 = Label(frame, text="10000", font=100)
 price_spot1.place(x=130, y=360)
 price_spot2 = Label(frame, text="7000", font=100)
 price_spot2.place(x=130, y=390)
-price_spot3 = Label(frame, text="13000", font=100)
-price_spot3.place(x=130, y=420)
-price_spot4 = Label(frame, text="4000", font=100)
-price_spot4.place(x=130, y=450)
 
 Label_EXIST1 = False
 Label_EXIST2 = False
+
+def motor():
+    while True:
+        GPIO.output(trig3, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
+        time.sleep(0.00001)       # 10µs 딜레이 
+        GPIO.output(trig3, False)
+
+        while GPIO.input(echo3)==0:
+            start = time.time()	 # Echo 핀 상승 시간 
+        while GPIO.input(echo3)==1:
+            stop= time.time() # Echo 핀 하강 시간 
+
+        check_time = stop - start
+        distance = check_time * 34300 / 2
+        print("Distance3 : %.1f cm" % distance)
+        time.sleep(0.4)	# 0.4초 간격으로 센서 측정
+
+        if (distance <= 10):
+            servo.ChangeDutyCycle(7.5)  # 90도 
+            time.sleep(3)
+            servo.ChangeDutyCycle(2.5)  # 90도 
+
 
 def dist1():
     global Label_EXIST1
@@ -172,8 +194,11 @@ t1 = threading.Thread(target=dist1, args=())
 
 t2 = threading.Thread(target=dist2, args=())
 
+t3 = threading.Thread(target=motor, args=())
+
 t1.start()
 t2.start()
+t3.start()
 
 # p_a = Process(target=doit)
 # p_a.start()
