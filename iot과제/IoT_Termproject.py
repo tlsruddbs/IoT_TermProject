@@ -64,7 +64,7 @@ image_X_tk = ImageTk.PhotoImage(image_X_resize)
 
 # 닫힌 로커 이미지를 불러오고 크기 조정
 image_close = Image.open("/home/pi/Desktop/close_locker2.png")
-image_close_resize = image_close.resize((200, 120))
+image_close_resize = image_close.resize((152, 105)) # 200, 120
 image_close_tk = ImageTk.PhotoImage(image_close_resize)
 
 # 열린 로커 이미지를 불러오고 크기 조정
@@ -89,7 +89,7 @@ box_label.place_forget()
 
 # 닫힌 로커 이미지 배치 좌표
 close_locker_label = Label(frame, image=image_close_tk)
-close_locker_label.place(x=25, y=50)
+close_locker_label.place(x=65, y=55)
 
 locker_status= Label(frame, text="사물함 상황 : ", font=900)
 locker_status.place(x=20, y=10)
@@ -163,11 +163,15 @@ def close():
     if Isopen:
         Isopen = False
         open_locker_label.place_forget()
-        close_locker_label.place(x=25, y=50)
-    close_msg_label = Label(frame, text="문이 닫혔습니다.")
-    close_msg_label.place(x=100, y=200)
-    close_msg_label.after(2000, lambda: close_msg_label.destroy())
-    motor(False)
+        close_locker_label.place(x=65, y=55)
+        close_msg_label = Label(frame, text="문이 닫혔습니다.")
+        close_msg_label.place(x=100, y=200)
+        close_msg_label.after(2000, lambda: close_msg_label.destroy())
+        motor(False)
+    else:
+        close_msg_label2 = Label(frame, text="문이 이미 닫혀있습니다.")
+        close_msg_label2.place(x=100, y=200)
+        close_msg_label2.after(2000, lambda: close_msg_label2.destroy())
     
 
 def pw_click(item):
@@ -187,13 +191,13 @@ def motor(bool):
     if bool:
         GPIO.setup(SERVO_PIN, GPIO.OUT)
         servo.start(0)
-        servo.ChangeDutyCycle(7.5)  # 90도
+        servo.ChangeDutyCycle(2.5) 
         time.sleep(0.5)
         GPIO.setup(SERVO_PIN, GPIO.IN)
     else:
         GPIO.setup(SERVO_PIN, GPIO.OUT)
         servo.start(0)
-        servo.ChangeDutyCycle(2.5)  # 0도
+        servo.ChangeDutyCycle(7.5) 
         time.sleep(0.5)
         GPIO.setup(SERVO_PIN, GPIO.IN)
 
@@ -211,7 +215,7 @@ def dist():
 
         check_time = stop - start
         distance = check_time * 34300 / 2
-        print("Distance : %.1f cm" % distance)
+        # print("Distance : %.1f cm" % distance)
         time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
         
         if(distance <= 10):
@@ -224,7 +228,6 @@ def dist():
 
 t1 = threading.Thread(target=dist, args=())
 t1.start()
+
 frame.mainloop()
-
-
 
