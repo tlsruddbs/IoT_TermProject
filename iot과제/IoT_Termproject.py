@@ -1,6 +1,4 @@
-from cgi import test
 from email.mime import image
-import math
 import threading
 import RPi.GPIO as GPIO
 import time
@@ -11,39 +9,43 @@ from setuptools import Command
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-# 서보모터의 핀 번호 및 설정
+# 서보모터의 핀 번호와 출력 설정 후, PWM 인스턴스 servo 생성하고 주파수 50으로 설정 
 SERVO_PIN = 18
 GPIO.setup(SERVO_PIN, GPIO.OUT)
-# PWM 인스턴스 servo 생성, 주파수 50으로 설정 
 servo = GPIO.PWM(SERVO_PIN,50)
 
-# LED핀의 번호 및 설정
+# LED핀의 번호 및 출력 설정
 led_pin = 14
 GPIO.setup(led_pin, GPIO.OUT)
 GPIO.output(led_pin, 0)
 
-speed = 0.1
 
+# speed = 0.1 - 없앨것
+
+# 초음파센서의 trig, echo 핀 번호 및 입출력 설정
 trig = 23
 echo = 24
-
 GPIO.setup(trig,GPIO.OUT)
 GPIO.setup(echo,GPIO.IN)
 GPIO.output(trig, False)
 time.sleep(1)
 
+# 비밀번호를 입력하는 버튼 텍스트의 리스트
 callitem = [['1', '2', '3'],
             ['4', '5', '6'],
             ['7', '8', '9'],
             ['*', '0', '#']]
 
-# 설정된 비밀번호가 존재하는지에 대한 변수.
+# 비밀번호가 존재하는지에 대한 변수.
 PW_EXIST = False
+
 # 문이 열려있는지 닫혀있는지에 대한 변수
 Isopen = False
 
+# 비밀번호를 저장하는 리스트
 password = []
 
+# Entry에 표시될 텍스트
 disvalue = ""
 
 frame = Tk() # 프레임 생성
@@ -52,7 +54,7 @@ frame.geometry("270x420") # 프레임 크기 설정
 str_value = StringVar()
 str_value.set("")
 
-# O 이미지를 불러오고 크기 조정
+# 'O' 이미지를 불러오고 크기 조정
 image_O = Image.open("/home/pi/Desktop/O.png")
 image_O_resize = image_O.resize((100, 100))
 image_O_tk = ImageTk.PhotoImage(image_O_resize)
@@ -91,30 +93,36 @@ box_label.place_forget()
 close_locker_label = Label(frame, image=image_close_tk)
 close_locker_label.place(x=65, y=55)
 
+# 사물함 상황을 나타내는 Label들
 locker_status= Label(frame, text="사물함 상황 : ", font=900)
 locker_status.place(x=20, y=10)
 locker_status_now = Label(frame, text="", font=900)
 locker_status_now.place(x=130, y=10)
 
+# 비밀번호 Label
 pw_label = Label(frame, text="비밀번호", font=100)
 pw_label.place(x=20, y=200)
+
 
 input_pw = Entry(frame, text=str_value, width=14)
 input_pw.place(x=20, y=230)
 
+# 열기 버튼
 open_btn = Button(frame, text="열기", command=lambda : open())
 open_btn.place(x=150, y=225)
 
+# 닫기 버튼
 close_btn = Button(frame, text="닫기", command=lambda : close())
 close_btn.place(x=210, y=225)
 
+# frame에 비밀번호 입력 버튼 배치
 for i,items in enumerate(callitem):
     for j,item in enumerate(items):
-        #btn = Button(frame, text=item, command=pw_click(item))
-        btn = Button(frame, text=item, command=lambda cmd=item: pw_click(cmd))
+        btn = Button(frame, text=item, command=lambda cmd=item: ast_click(cmd))
         btn.place(x=20+40*j, y=260+40*i)
 
 
+# 열기 버튼에 대한 메소드
 def open():
     global PW_EXIST, password, Isopen
     e = input_pw.get()
@@ -127,7 +135,7 @@ def open():
         PW_EXIST = True
         for i in range(len(e)-1):
             password.append(e[i+1])
-
+    
     if not PW_EXIST:
         pw_not_exist_label = Label(frame, text="비밀번호가 존재하지 않습니다.", fg='red')
         pw_not_exist_label.place(x=100, y=200)
@@ -157,6 +165,7 @@ def open():
             O_label.after(2000, lambda: O_label.destroy())
             motor(True)
 
+# 닫기 버튼에 대한 메소드
 def close():
     global Isopen
     GPIO.output(led_pin, 0)
@@ -172,21 +181,24 @@ def close():
         close_msg_label2 = Label(frame, text="문이 이미 닫혀있습니다.")
         close_msg_label2.place(x=100, y=200)
         close_msg_label2.after(2000, lambda: close_msg_label2.destroy())
-    
 
-def pw_click(item):
-    ast_click(item)
+# 한번 수정해 볼것!  pw_click()을 ast_click()으로 통합하는 걸로
+# def pw_click(item):
+#     ast_click(item)
 
+# Entry 창에 텍스트를 띄우는 메소드
 def ast_click(item):
     global disvalue
     disvalue = disvalue + item
     str_value.set(disvalue)
 
+# Entry 창에 텍스트를 비우는 메소드
 def clear():
     global disvalue
     disvalue = ""
     str_value.set(disvalue)
 
+# 서보모터의 움직임을 제어하는 메소드
 def motor(bool):
     if bool:
         GPIO.setup(SERVO_PIN, GPIO.OUT)
@@ -201,7 +213,7 @@ def motor(bool):
         time.sleep(0.5)
         GPIO.setup(SERVO_PIN, GPIO.IN)
 
-
+# 로커 안에 사물이 있는지 없는지를 확인하는 메소드
 def dist():
     while True:
         GPIO.output(trig, True)   # Triger 핀에  펄스신호를 만들기 위해 1 출력
@@ -215,7 +227,6 @@ def dist():
 
         check_time = stop - start
         distance = check_time * 34300 / 2
-        # print("Distance : %.1f cm" % distance)
         time.sleep(0.4)	# 0.4초 간격으로 센서 측정 
         
         if(distance <= 10):
@@ -230,4 +241,3 @@ t1 = threading.Thread(target=dist, args=())
 t1.start()
 
 frame.mainloop()
-
