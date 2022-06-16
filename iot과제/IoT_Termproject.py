@@ -179,10 +179,6 @@ def close():
         close_msg_label2.place(x=100, y=200)
         close_msg_label2.after(2000, lambda: close_msg_label2.destroy())
 
-# 한번 수정해 볼것!  pw_click()을 ast_click()으로 통합하는 걸로
-# def pw_click(item):
-#     ast_click(item)
-
 # Entry 창에 텍스트를 띄우는 메소드
 def ast_click(item):
     global disvalue
