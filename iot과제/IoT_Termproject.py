@@ -19,9 +19,6 @@ led_pin = 14
 GPIO.setup(led_pin, GPIO.OUT)
 GPIO.output(led_pin, 0)
 
-
-# speed = 0.1 - 없앨것
-
 # 초음파센서의 trig, echo 핀 번호 및 입출력 설정
 trig = 23
 echo = 24
